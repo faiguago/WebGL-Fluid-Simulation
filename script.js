@@ -24,6 +24,74 @@ SOFTWARE.
 
 'use strict';
 
+// --- VARIABLES GLOBALES (VERIFICA QUE ESTÉN AL INICIO DE script.js) ---
+let walletConnected = false; 
+const paywallOverlay = document.getElementById('paywall-overlay');
+// Obtenemos la referencia al popup promocional que eliminamos antes (si aún existe en el HTML)
+const promoPopup = document.getElementsByClassName('promo')[0]; 
+// ----------------------------------------------------------------------
+
+
+// --- FUNCIÓN DE CONTROL DE BLOQUEO (DEBE EXISTIR EN script.js) ---
+function updateAppLockState () {
+    if (walletConnected) {
+        if (paywallOverlay) {
+            paywallOverlay.style.display = 'none'; // Desbloquear/Ocultar
+        }
+    } else {
+        if (paywallOverlay) {
+            paywallOverlay.style.display = 'flex'; // Bloquear/Mostrar
+        }
+    }
+}
+updateAppLockState();
+// ----------------------------------------------------------------------
+
+
+// --- LÓGICA DEL BOTÓN DE LOGIN (Al final de script.js o en la sección de event listeners) ---
+const loginPaywallButton = document.getElementById('login-paywall-button');
+
+if (loginPaywallButton) {
+    loginPaywallButton.addEventListener('click', async () => {
+        if (walletConnected) {
+            // Ya conectado: simplemente actualiza el estado (oculta el paywall)
+            updateAppLockState();
+            return; 
+        }
+
+        if (window.callConnectWallet && window.callHandlePayment) {
+            console.log('Botón de Login Paywall presionado. Iniciando Autenticación y Pago...');
+            try {
+                // PASO 1: Autenticación
+                console.log('1. Autenticando monedero...');
+                await window.callConnectWallet();
+
+                // PASO 2: Pago de 1 WLD
+                console.log('2. Solicitando pago de 1 WLD...');
+                // LLAMADA CORREGIDA: Pasamos "1" como argumento
+                await window.callHandlePayment("1"); 
+
+                // PASO 3: Éxito total. Establecer flags y ocultar elementos.
+                walletConnected = true; 
+                updateAppLockState(); // Oculta el paywall.
+                
+                // OCULTAR SECCIÓN PROMOCIONAL (la que solía ser un popup)
+                if (promoPopup) {
+                    promoPopup.style.display = 'none'; 
+                    console.log('Sección promocional (promo) oculta permanentemente.');
+                }
+                
+                console.log('Aplicación completamente desbloqueada y pago confirmado.');
+
+            } catch (error) {
+                console.error('Proceso de Autenticación/Pago fallido. La aplicación permanece bloqueada.', error);
+            }
+        } else {
+            console.error("MiniKit functions (callConnectWallet/callHandlePayment) are missing.");
+        }
+    });
+}
+
 // Simulation section
 const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
