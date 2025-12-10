@@ -186,35 +186,27 @@
                 margin-top: 20px;
                 font-weight: bold;
             }
-
-            /* ESTILOS REFORZADOS PARA EL BOTÓN DE CONTROL */
+            
+            /* ESTILOS DE DAT.GUI AJUSTADOS (Más altura y texto en negrita) */
             .dg .close-button {
-                /* Aumentamos el padding para una altura notable (como ya hicimos) */
+                /* Aumentamos el padding para la altura */
                 padding-top: 15px !important; 
                 padding-bottom: 15px !important;
                 
-                /* HACEMOS EL TEXTO GRANDE Y BOLD */
+                /* AUMENTAMOS EL TAMAÑO DEL TEXTO */
                 font-size: 1.5em !important; 
+                
+                /* HACEMOS EL TEXTO EN NEGRITA (La clave para la evidencia) */
                 font-weight: bold !important; 
-                color: #111 !important; /* Texto oscuro para contrastar con el fondo brillante */
-                text-shadow: none !important; /* Elimina sombras de texto que puedan restar claridad */
-                
-                /* AÑADIMOS ESTILO MODERNO: Fondo brillante y esquinas redondeadas */
-                background-color: #00FF7F !important; /* Color verde brillante (como el botón de pago) */
-                border-radius: 8px !important; /* Esquinas ligeramente redondeadas */
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important; /* Sombra sutil */
-                
-                /* Asegura que el botón ocupe todo el ancho disponible si es necesario */
-                text-align: center !important; 
-                
-                line-height: normal; 
-                transition: background-color 0.2s; /* Efecto de transición para el hover */
-            }
 
-            /* ESTILO ADICIONAL: Efecto al pasar el ratón (Hover) */
-            .dg .close-button:hover {
-                background-color: #33FF99 !important; /* Un poco más claro al pasar el ratón */
-                cursor: pointer;
+                /* Revertir estilos estéticos para mantener el aspecto original de dat.GUI */
+                background-color: transparent !important; /* Asegura el fondo original oscuro */
+                border-radius: 0 !important; /* Esquinas cuadradas */
+                box-shadow: none !important; /* Sin sombras */
+                color: #eee !important; /* Color de texto original (claro) */
+                
+                text-align: center !important; 
+                line-height: normal; 
             }
         </style>
         <script>
