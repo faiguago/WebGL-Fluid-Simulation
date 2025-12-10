@@ -258,6 +258,53 @@ function supportRenderTextureFormat (gl, internalFormat, format, type) {
     return status == gl.FRAMEBUFFER_COMPLETE;
 }
 
+// Función para generar configuraciones de simulación aleatorias
+function randomizeConfig () {
+    // Genera valores aleatorios dentro de rangos razonables
+    
+    // Propiedades de disipación y presión
+    config.DENSITY_DISSIPATION = Math.random() * 2 + 0.1;
+    config.VELOCITY_DISSIPATION = Math.random() * 0.5 + 0.05;
+    config.PRESSURE = Math.random() * 0.9 + 0.1;
+    
+    // Propiedad del pincel (Splat Radius)
+    if (config.SPLAT_RADIUS !== undefined) config.SPLAT_RADIUS = Math.random() * 0.3 + 0.1;
+    
+    // Propiedad de curvatura (Curl)
+    if (config.CURL !== undefined) config.CURL = Math.random() * 50;
+    
+    // Propiedades booleanas (ej. SUNRAYS, BLOOM)
+    if (config.SUNRAYS !== undefined) config.SUNRAYS = Math.random() > 0.5;
+    if (config.BLOOM !== undefined) config.BLOOM = Math.random() > 0.5;
+
+    // Forzar a dat.GUI a actualizar los valores mostrados
+    // Esto es vital para ver los cambios en el panel
+    for (let i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+    }
+    for (let f in gui.__folders) {
+        for (let i in gui.__folders[f].__controllers) {
+            gui.__folders[f].__controllers[i].updateDisplay();
+        }
+    }
+    
+    console.log("Random Sim: Configuración de simulación aleatorizada.");
+}
+
+
+// Función para alternar el color de fondo (Negro/Blanco)
+function toggleBackgroundColor () {
+    const isBlack = document.body.style.backgroundColor === 'rgb(0, 0, 0)' || document.body.style.backgroundColor === '#000' || document.body.style.backgroundColor === '';
+    
+    if (isBlack) {
+        document.body.style.backgroundColor = '#FFFFFF'; // Fondo Blanco
+        console.log("Fondo cambiado a blanco.");
+    } else {
+        document.body.style.backgroundColor = '#000000'; // Fondo Negro
+        console.log("Fondo cambiado a negro.");
+    }
+}
+
 function startGUI () {
     var gui = new dat.GUI({ width: 300 });
     gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name('quality').onFinishChange(initFramebuffers);
@@ -274,6 +321,10 @@ function startGUI () {
     gui.add({ fun: () => {
         splatStack.push(parseInt(Math.random() * 20) + 5);
     } }, 'fun').name('Random splats');
+
+    // Nuevos botones
+    gui.add({ fun: randomizeConfig }, 'fun').name('Random Sim');
+    gui.add({ fun: toggleBackgroundColor }, 'fun').name('Toggle Background');
 
     let bloomFolder = gui.addFolder('Bloom');
     bloomFolder.add(config, 'BLOOM').name('enabled').onFinishChange(updateKeywords);
