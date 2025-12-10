@@ -237,22 +237,29 @@ function startGUI () {
                         // Esperamos a que la Promesa se resuelva (éxito).
                         await window.callConnectWallet();
 
-                        // CONEXIÓN EXITOSA: Forzamos la apertura y el cambio de símbolo.
+                        // CONEXIÓN EXITOSA: Forzamos la apertura usando el método interno de dat.GUI
+                        // y luego actualizamos el botón manualmente.
                         
-                        // Usamos setTimeout(0) para asegurar que el cambio de clase ocurre después
-                        // de cualquier código síncrono que pueda estar ejecutándose.
+                        // 1. Abrimos el panel usando el método interno (esto garantiza el estado de visibilidad y estilos)
+                        gui.open();
+                        
+                        // 2. Quitamos la clase 'closed' y actualizamos el símbolo del botón (manualmente, ya que lo interceptamos)
+                        // Usamos setTimeout(0) por seguridad para que se ejecute después de gui.open().
                         setTimeout(() => {
-                            guiDom.classList.remove('closed'); // Quita la clase 'closed' para abrir el panel
-                            newCloseButton.innerHTML = 'x';    // Cambia el símbolo del botón a 'x'
-                            console.log('--- ÉXITO: Panel Abierto y UI Actualizada (async) ---');
-                        }, 0);
+                            guiDom.classList.remove('closed'); // Asegura que la clase se elimina si dat.GUI la deja
+                            newCloseButton.innerHTML = 'x';    // Cambia el símbolo
+                            console.log('--- ÉXITO: Panel Abierto y UI Actualizada con gui.open() ---');
+                        }, 0); 
+                        
                     } catch (error) {
                         // CONEXIÓN FALLIDA (cancelada por el usuario o error).
                         console.error('Conexión fallida. Panel de controles permanece cerrado.', error);
                     }
                 }
             } else {
-                // El usuario está intentando CERRAR -> Permitimos el cierre manual.
+                // El usuario está intentando CERRAR -> Permitimos el cierre.
+                // Usamos gui.close() para asegurar que el cierre es limpio.
+                gui.close();
                 guiDom.classList.add('closed');
                 newCloseButton.innerHTML = '*'; // Cambiamos el símbolo a 'abrir'
                 console.log('Panel cerrado por el usuario.');
