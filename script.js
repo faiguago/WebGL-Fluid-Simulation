@@ -28,9 +28,6 @@ SOFTWARE.
 const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
-// Global variable for wallet connected
-let walletConnected = false;
-
 let config = {
     SIM_RESOLUTION: 128,
     DYE_RESOLUTION: 1024,
@@ -213,68 +210,6 @@ function startGUI () {
 
     if (isMobile())
         gui.close();
-
-    // Conexion de billetera!
-    const guiDom = gui.domElement;
-    const closeButton = guiDom.querySelector('.close-button');
-
-    if (closeButton) {
-        // 1. Aseguramos que el panel esté cerrado por defecto, y actualizamos el texto inicial.
-        guiDom.classList.add('closed');
-        closeButton.innerHTML = 'Open Controls'; 
-
-        // 2. Clonamos y reemplazamos el botón para eliminar el detector de eventos predeterminado de dat.GUI.
-        const newCloseButton = closeButton.cloneNode(true);
-        closeButton.parentNode.replaceChild(newCloseButton, closeButton);
-
-        // 3. Añadimos la lógica personalizada al nuevo botón.
-        newCloseButton.addEventListener('click', async (e) => {
-            const isClosed = guiDom.classList.contains('closed');
-
-            if (isClosed) {
-                // El usuario está intentando ABRIR.
-                
-                if (walletConnected) {
-                    // --- CASO 1: YA CONECTADO. ABRIR DIRECTAMENTE ---
-                    gui.open();
-                    
-                    setTimeout(() => {
-                        guiDom.classList.remove('closed'); 
-                        newCloseButton.innerHTML = 'Close Controls';
-                        console.log('--- ÉXITO: Panel Abierto (ya conectado) ---');
-                    }, 0);
-
-                } else if (window.callConnectWallet) {
-                    // --- CASO 2: NO CONECTADO. PEDIR AUTENTICACIÓN ---
-                    console.log('Intento de abrir controles. Llamando a window.callConnectWallet...');
-                    try {
-                        await window.callConnectWallet();
-
-                        // CONEXIÓN EXITOSA: Establecer el flag para no volver a pedir.
-                        walletConnected = true; // <--- LA CLAVE PARA ELIMINAR FUTURAS SOLICITUDES
-                        gui.open();
-                        
-                        // Forzar actualización de la UI.
-                        setTimeout(() => {
-                            guiDom.classList.remove('closed'); 
-                            newCloseButton.innerHTML = 'Close Controls';
-                            console.log('--- ÉXITO: Panel Abierto y UI Actualizada ---');
-                        }, 0); 
-                        
-                    } catch (error) {
-                        // CONEXIÓN FALLIDA (cancelada por el usuario o error).
-                        console.error('Conexión fallida. Panel de controles permanece cerrado.', error);
-                    }
-                }
-            } else {
-                // El usuario está intentando CERRAR -> Permitimos el cierre.
-                gui.close();
-                guiDom.classList.add('closed');
-                newCloseButton.innerHTML = 'Open Controls'; 
-                console.log('Panel cerrado por el usuario.');
-            }
-        });
-    }
 }
 
 function isMobile () {
