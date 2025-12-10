@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict';
 
 // CLAVE PARA LOCALSTORAGE
-const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1'; 
+const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test01'; 
 
 // --- VARIABLES GLOBALES Y CARGA INICIAL (INICIO DE script.js) ---
 let walletConnected = false; 
@@ -33,7 +33,7 @@ const paywallOverlay = document.getElementById('paywall-overlay');
 const promoPopup = document.getElementsByClassName('promo')[0]; 
 
 // NUEVA LÓGICA DE CARGA INICIAL: Cargar estado del pago desde localStorage
-if (localStorage.getItem(PAYMENT_STORAGE_KEY) === 'false') {
+if (localStorage.getItem(PAYMENT_STORAGE_KEY) === 'true') {
     walletConnected = true;
     console.log('Pago encontrado en el almacenamiento local. Aplicación desbloqueada.');
     
