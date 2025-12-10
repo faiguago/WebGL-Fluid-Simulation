@@ -24,15 +24,26 @@ SOFTWARE.
 
 'use strict';
 
-// --- VARIABLES GLOBALES (VERIFICA QUE ESTÉN AL INICIO DE script.js) ---
+// CLAVE PARA LOCALSTORAGE
+const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1'; 
+
+// --- VARIABLES GLOBALES Y CARGA INICIAL (INICIO DE script.js) ---
 let walletConnected = false; 
 const paywallOverlay = document.getElementById('paywall-overlay');
-// Obtenemos la referencia al popup promocional que eliminamos antes (si aún existe en el HTML)
 const promoPopup = document.getElementsByClassName('promo')[0]; 
-// ----------------------------------------------------------------------
 
+// NUEVA LÓGICA DE CARGA INICIAL: Cargar estado del pago desde localStorage
+if (localStorage.getItem(PAYMENT_STORAGE_KEY) === 'true') {
+    walletConnected = true;
+    console.log('Pago encontrado en el almacenamiento local. Aplicación desbloqueada.');
+    
+    // Si ya está pagado, aseguramos que la sección 'promo' desaparezca.
+    if (promoPopup) {
+        promoPopup.style.display = 'none';
+    }
+}
 
-// --- FUNCIÓN DE CONTROL DE BLOQUEO (DEBE EXISTIR EN script.js) ---
+// --- FUNCIÓN DE CONTROL DE BLOQUEO ---
 function updateAppLockState () {
     if (walletConnected) {
         if (paywallOverlay) {
@@ -44,50 +55,52 @@ function updateAppLockState () {
         }
     }
 }
-updateAppLockState();
-// ----------------------------------------------------------------------
 
+updateAppLockState(); // Ejecutar al inicio (ahora usa el estado cargado).
 
-// --- LÓGICA DEL BOTÓN DE LOGIN (Al final de script.js o en la sección de event listeners) ---
+// --- LÓGICA DEL BOTÓN DE LOGIN (Listener del loginPaywallButton) ---
 const loginPaywallButton = document.getElementById('login-paywall-button');
 
 if (loginPaywallButton) {
     loginPaywallButton.addEventListener('click', async () => {
         if (walletConnected) {
-            // Ya conectado: simplemente actualiza el estado (oculta el paywall)
+            // Ya conectado (por carga local o sesión actual), solo actualiza el estado.
             updateAppLockState();
             return; 
         }
 
         if (window.callConnectWallet && window.callHandlePayment) {
-            console.log('Botón de Login Paywall presionado. Iniciando Autenticación y Pago...');
+            console.log('Iniciando Autenticación y Pago...');
             try {
                 // PASO 1: Autenticación
-                console.log('1. Autenticando monedero...');
                 await window.callConnectWallet();
 
                 // PASO 2: Pago de 1 WLD
-                console.log('2. Solicitando pago de 1 WLD...');
-                // LLAMADA CORREGIDA: Pasamos "1" como argumento
                 await window.callHandlePayment("1"); 
 
-                // PASO 3: Éxito total. Establecer flags y ocultar elementos.
+                // PASO 3: Éxito total. Establecer flags y GUARDAR en localStorage.
                 walletConnected = true; 
+                
+                // --- LA CLAVE PARA PERSISTIR EL PAGO ---
+                localStorage.setItem(PAYMENT_STORAGE_KEY, 'true'); 
+                // ---------------------------------------
+                
                 updateAppLockState(); // Oculta el paywall.
                 
-                // OCULTAR SECCIÓN PROMOCIONAL (la que solía ser un popup)
+                // Ocultar sección promocional
                 if (promoPopup) {
                     promoPopup.style.display = 'none'; 
-                    console.log('Sección promocional (promo) oculta permanentemente.');
+                    console.log('Sección promocional oculta permanentemente.');
                 }
                 
-                console.log('Aplicación completamente desbloqueada y pago confirmado.');
+                console.log('Aplicación desbloqueada y estado guardado localmente.');
 
             } catch (error) {
-                console.error('Proceso de Autenticación/Pago fallido. La aplicación permanece bloqueada.', error);
+                console.error('Proceso de Autenticación/Pago fallido.', error);
+                // Asegurar que el estado y el storage no se actualicen en caso de fallo.
             }
         } else {
-            console.error("MiniKit functions (callConnectWallet/callHandlePayment) are missing.");
+            console.error("MiniKit functions are missing.");
         }
     });
 }
