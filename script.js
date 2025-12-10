@@ -34,7 +34,10 @@ const promoPopup = document.getElementsByClassName('promo')[0];
 
 // NUEVA LÓGICA DE CARGA INICIAL: Cargar estado del pago desde localStorage
 if (localStorage.getItem(PAYMENT_STORAGE_KEY) === 'true') {
-    walletConnected = true;
+    //walletConnected = true;
+    if(!walletConnected)
+        return;
+
     console.log('Pago encontrado en el almacenamiento local. Aplicación desbloqueada.');
     
     // Si ya está pagado, aseguramos que la sección 'promo' desaparezca.
