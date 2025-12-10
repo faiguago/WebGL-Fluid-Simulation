@@ -187,16 +187,34 @@
                 font-weight: bold;
             }
 
-            /* ESTILOS CORREGIDOS PARA DAT.GUI BUTTONS */
+            /* ESTILOS REFORZADOS PARA EL BOTÓN DE CONTROL */
             .dg .close-button {
-                /* Aumentamos el padding vertical para la altura */
+                /* Aumentamos el padding para una altura notable (como ya hicimos) */
                 padding-top: 15px !important; 
                 padding-bottom: 15px !important;
                 
-                /* AUMENTAMOS EL TAMAÑO DEL TEXTO */
+                /* HACEMOS EL TEXTO GRANDE Y BOLD */
                 font-size: 1.5em !important; 
+                font-weight: bold !important; 
+                color: #111 !important; /* Texto oscuro para contrastar con el fondo brillante */
+                text-shadow: none !important; /* Elimina sombras de texto que puedan restar claridad */
+                
+                /* AÑADIMOS ESTILO MODERNO: Fondo brillante y esquinas redondeadas */
+                background-color: #00FF7F !important; /* Color verde brillante (como el botón de pago) */
+                border-radius: 8px !important; /* Esquinas ligeramente redondeadas */
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important; /* Sombra sutil */
+                
+                /* Asegura que el botón ocupe todo el ancho disponible si es necesario */
+                text-align: center !important; 
                 
                 line-height: normal; 
+                transition: background-color 0.2s; /* Efecto de transición para el hover */
+            }
+
+            /* ESTILO ADICIONAL: Efecto al pasar el ratón (Hover) */
+            .dg .close-button:hover {
+                background-color: #33FF99 !important; /* Un poco más claro al pasar el ratón */
+                cursor: pointer;
             }
         </style>
         <script>
