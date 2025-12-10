@@ -155,6 +155,8 @@ let pointers = [];
 let splatStack = [];
 pointers.push(new pointerPrototype());
 
+let gui;
+
 const { gl, ext } = getWebGLContext(canvas);
 
 if (isMobile()) {
@@ -269,29 +271,22 @@ function randomizeConfig () {
     config.PRESSURE = Math.random() * 0.9 + 0.1;           
     
     // Propiedad del pincel (Splat Radius)
-    if (config.SPLAT_RADIUS !== undefined) config.SPLAT_RADIUS = Math.random() * 0.3 + 0.1; 
+    config.SPLAT_RADIUS = Math.random() * 0.3 + 0.1; 
     
     // Propiedad de curvatura (Curl)
-    if (config.CURL !== undefined) config.CURL = Math.random() * 50; 
+    config.CURL = Math.random() * 50; 
     
     // Propiedades booleanas 
-    if (config.SUNRAYS !== undefined) config.SUNRAYS = Math.random() > 0.5;
-    if (config.BLOOM !== undefined) config.BLOOM = Math.random() > 0.5;
+    config.BLOOM = Math.random() > 0.5;
+    config.SUNRAYS = Math.random() > 0.5;
 
-    // Opcional: Si cambias la resolución, llama a initFramebuffers para aplicar
-    if (config.SIM_RESOLUTION !== undefined && typeof initFramebuffers === 'function') {
-        const resolutions = [32, 64, 128, 256, 512];
-        config.SIM_RESOLUTION = resolutions[Math.floor(Math.random() * resolutions.length)];
-        config.DYE_RESOLUTION = resolutions[Math.floor(Math.random() * resolutions.length)];
-        initFramebuffers(); // Aplica los nuevos tamaños de buffer
-    }
-    
     // CRÍTICO: Forzar la actualización de la UI de dat.GUI
-    // Esto itera sobre todos los controladores (sliders, checkboxes) y carpetas.
     if (typeof gui !== 'undefined') {
+        // Itera sobre todos los controles principales
         for (let i in gui.__controllers) {
             gui.__controllers[i].updateDisplay();
         }
+        // Itera sobre los controles dentro de las carpetas (ej. Bloom, Sunrays)
         for (let f in gui.__folders) {
             for (let i in gui.__folders[f].__controllers) {
                 gui.__folders[f].__controllers[i].updateDisplay();
@@ -304,44 +299,49 @@ function randomizeConfig () {
 
 // Función para alternar el color de fondo (Negro/Blanco)
 function toggleBackgroundColor () {
-    // Verificamos si el color actual es oscuro (ej: si el canal Rojo es < 100)
-    const isDark = config.BASE_COLOR[0] < 100;
+    // Comprobamos si el color actual es oscuro (tu config usa {r, g, b})
+    const isDark = config.BACK_COLOR.r < 100 && config.BACK_COLOR.g < 100 && config.BACK_COLOR.b < 100;
     
-    let targetColor;
+    let targetR, targetG, targetB, targetHex;
     
     if (isDark) {
         // Cambiar a Blanco
-        config.BASE_COLOR = [255, 255, 255]; 
-        targetColor = '#FFFFFF';
+        targetR = targetG = targetB = 255;
+        targetHex = '#FFFFFF';
+        console.log("Fondo cambiado a blanco.");
     } else {
         // Cambiar a Negro
-        config.BASE_COLOR = [0, 0, 0];
-        targetColor = '#000000';
+        targetR = targetG = targetB = 0;
+        targetHex = '#000000';
+        console.log("Fondo cambiado a negro.");
     }
     
-    // Aplica el color al <body> (siempre es bueno)
-    document.body.style.backgroundColor = targetColor;
+    // 1. Asignar el nuevo objeto de color a config
+    config.BACK_COLOR = { r: targetR, g: targetG, b: targetB };
     
-    // CRÍTICO: Forzar una "limpieza" en el canvas para que el nuevo color se muestre.
-    // Esto se logra empujando un valor alto a splatStack.
+    // 2. Aplicar al body (por si acaso)
+    document.body.style.backgroundColor = targetHex;
+    
+    // 3. CRÍTICO: Forzar una "limpieza" para que el nuevo color se muestre en el canvas de WebGL
     if (typeof splatStack !== 'undefined') {
         splatStack.push(30); 
     }
     
-    // Si la GUI es global, forzamos la actualización de cualquier control que use BASE_COLOR.
+    // 4. Forzar la actualización de la UI (si 'BACK_COLOR' está en dat.GUI)
     if (typeof gui !== 'undefined') {
+        for (let i in gui.__controllers) {
+            gui.__controllers[i].updateDisplay();
+        }
         for (let f in gui.__folders) {
             for (let i in gui.__folders[f].__controllers) {
                 gui.__folders[f].__controllers[i].updateDisplay();
             }
         }
     }
-    
-    console.log(`Fondo cambiado a ${targetColor}.`);
 }
 
 function startGUI () {
-    var gui = new dat.GUI({ width: 300 });
+    gui = new dat.GUI({ width: 300 });
     gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name('quality').onFinishChange(initFramebuffers);
     gui.add(config, 'SIM_RESOLUTION', { '32': 32, '64': 64, '128': 128, '256': 256 }).name('sim resolution').onFinishChange(initFramebuffers);
     gui.add(config, 'DENSITY_DISSIPATION', 0, 4.0).name('density diffusion');
