@@ -212,7 +212,7 @@ function startGUI () {
     if (isMobile())
         gui.close();
 
-    // Conexion de Billetera
+    // Conexion de billetera!
     const guiDom = gui.domElement;
     const closeButton = guiDom.querySelector('.close-button');
 
@@ -221,8 +221,7 @@ function startGUI () {
         guiDom.classList.add('closed');
         closeButton.innerHTML = '*';
 
-        // 2. Clonamos y reemplazamos el botón para eliminar el detector de eventos (listener)
-        // predeterminado de la librería dat.GUI, obteniendo control total.
+        // 2. Clonamos y reemplazamos el botón para eliminar el detector de eventos predeterminado de dat.GUI.
         const newCloseButton = closeButton.cloneNode(true);
         closeButton.parentNode.replaceChild(newCloseButton, closeButton);
 
@@ -231,27 +230,32 @@ function startGUI () {
             const isClosed = guiDom.classList.contains('closed');
 
             if (isClosed) {
-                // El usuario está intentando ABRIR -> Requerimos conexión de monedero.
+                // El usuario está intentando ABRIR.
                 if (window.callConnectWallet) {
                     console.log('Intento de abrir controles. Llamando a window.callConnectWallet...');
                     try {
-                        // Esperamos a que la Promesa de la conexión se resuelva (éxito).
+                        // Esperamos a que la Promesa se resuelva (éxito).
                         await window.callConnectWallet();
 
-                        // CONEXIÓN EXITOSA: Abrimos el panel manualmente.
-                        guiDom.classList.remove('closed');
-                        newCloseButton.innerHTML = 'x'; // Cambiamos el símbolo a 'cerrar'
-
+                        // CONEXIÓN EXITOSA: Forzamos la apertura y el cambio de símbolo.
+                        
+                        // Usamos setTimeout(0) para asegurar que el cambio de clase ocurre después
+                        // de cualquier código síncrono que pueda estar ejecutándose.
+                        setTimeout(() => {
+                            guiDom.classList.remove('closed'); // Quita la clase 'closed' para abrir el panel
+                            newCloseButton.innerHTML = 'x';    // Cambia el símbolo del botón a 'x'
+                            console.log('--- ÉXITO: Panel Abierto y UI Actualizada (async) ---');
+                        }, 0);
                     } catch (error) {
-                        // CONEXIÓN FALLIDA (cancelada por el usuario o error):
-                        // El panel permanece cerrado porque el 'catch' se activa.
+                        // CONEXIÓN FALLIDA (cancelada por el usuario o error).
                         console.error('Conexión fallida. Panel de controles permanece cerrado.', error);
                     }
                 }
             } else {
-                // El usuario está intentando CERRAR -> Permitimos el cierre.
+                // El usuario está intentando CERRAR -> Permitimos el cierre manual.
                 guiDom.classList.add('closed');
                 newCloseButton.innerHTML = '*'; // Cambiamos el símbolo a 'abrir'
+                console.log('Panel cerrado por el usuario.');
             }
         });
     }
