@@ -56,41 +56,36 @@
                     });
 
                     if (finalPayload.status === 'success') {
-                        sendResultToUnity('ReceiveConnectWalletResult', { success: true, payload: finalPayload });
+                        // Manejar la autenticacion exitosa con el wallet
                     } else {
-                        sendResultToUnity('ReceiveConnectWalletResult', { success: false, error: "Conexión cancelada." });
+                        // Autenticacion fallida!
                     }
 
                 } catch (err) {
                     console.error("Error callConnectWallet:", err);
-                    sendResultToUnity('ReceiveConnectWalletResult', { success: false, error: "Conexión fallida o cancelada." });
                 }
             };
 
             window.callHandlePayment = async (amountWLDStr) => {
-                // Asegúrate de que el monto sea un número válido
                 const amountWLD = parseFloat(amountWLDStr);
                 if (isNaN(amountWLD) || amountWLD <= 0) {
-                     sendResultToUnity('ReceivePaymentResult', { success: false, error: "Monto inválido para el pago." });
-                     return;
+                    console.error("Monto inválido para el pago.", err);
+                    return;
                 }
 
                 try {
-                    // 🔑 MODIFICADO: Iniciar el pago en Vercel, enviando el monto dinámico
                     const initRes = await fetch(VERCEL_API_BASE + "/api/initiate-payment", { 
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ amountWLD: amountWLD }) // <--- ENVÍAS EL MONTO AL BACKEND
+                        body: JSON.stringify({ amountWLD: amountWLD })
                     }); 
                     if (!initRes.ok) throw new Error("No se pudo iniciar el pago en el backend.");
-                    const { id } = await initRes.json(); // Backend debe devolver un ID de referencia
+                    const { id } = await initRes.json();
                     
-                    // Nota: Asumo que /api/payment-info ya no es necesario o que el backend lo maneja.
-                    // Usaremos el monto que el usuario ingresó (amountWLD).
-                    
-                    // Si el backend es estático y solo proporciona la dirección de destino:
                     const infoRes = await fetch(VERCEL_API_BASE + "/api/payment-info"); 
+
                     if (!infoRes.ok) throw new Error("No se pudo obtener la información de pago.");
+                    
                     const { destinationAddress } = await infoRes.json(); 
                     
                     const amountDecimals = tokenToDecimals(amountWLD, Tokens.WLD);
@@ -103,13 +98,12 @@
                     });
 
                     if (finalPayload.status === 'success') {
-                        sendResultToUnity('ReceivePaymentResult', { success: true, hash: finalPayload.hash }); 
+                        // Manejar pago exitoso!
                     } else {
-                        sendResultToUnity('ReceivePaymentResult', { success: false, error: "Pago cancelado o fallido" });
+                        // Pago fallido!
                     }
                 } catch (err) {
                     console.error("Error en callHandlePayment:", err);
-                    sendResultToUnity('ReceivePaymentResult', { success: false, error: `Excepción de pago: ${err.message}` });
                 }
             };
         </script>
