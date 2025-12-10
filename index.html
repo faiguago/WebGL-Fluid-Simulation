@@ -22,6 +22,98 @@
         <meta property="og:image" content="https://paveldogreat.github.io/WebGL-Fluid-Simulation/logo.png">
 
         <script type="text/javascript" src="dat.gui.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+        <script>eruda.init();</script>
+
+        <script type="module">
+            import { 
+                MiniKit, 
+                VerificationLevel,
+                Tokens,
+                tokenToDecimals
+            } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.8/+esm";
+
+            const VERCEL_API_BASE = "https://juego02.vercel.app"; 
+
+            MiniKit.install({});
+
+            window.callConnectWallet = async () => {
+                try {
+                    const res = await fetch(VERCEL_API_BASE + "/api/nonce"); 
+                    if(!res.ok) {
+                       const errorBody = await res.text();
+                       console.error("Error al obtener nonce:", res.status, errorBody);
+                       throw new Error("No se pudo obtener el nonce. Respuesta cruda: " + errorBody);
+                    }
+
+                    const { nonce } = await res.json();
+
+                    const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
+                        nonce,
+                        expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                        notBefore: new Date(Date.now() - 24 * 60 * 60 * 1000)
+                    });
+
+                    if (finalPayload.status === 'success') {
+                        sendResultToUnity('ReceiveConnectWalletResult', { success: true, payload: finalPayload });
+                    } else {
+                        sendResultToUnity('ReceiveConnectWalletResult', { success: false, error: "Conexión cancelada." });
+                    }
+
+                } catch (err) {
+                    console.error("Error callConnectWallet:", err);
+                    sendResultToUnity('ReceiveConnectWalletResult', { success: false, error: "Conexión fallida o cancelada." });
+                }
+            };
+
+            window.callHandlePayment = async (amountWLDStr) => {
+                // Asegúrate de que el monto sea un número válido
+                const amountWLD = parseFloat(amountWLDStr);
+                if (isNaN(amountWLD) || amountWLD <= 0) {
+                     sendResultToUnity('ReceivePaymentResult', { success: false, error: "Monto inválido para el pago." });
+                     return;
+                }
+
+                try {
+                    // 🔑 MODIFICADO: Iniciar el pago en Vercel, enviando el monto dinámico
+                    const initRes = await fetch(VERCEL_API_BASE + "/api/initiate-payment", { 
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ amountWLD: amountWLD }) // <--- ENVÍAS EL MONTO AL BACKEND
+                    }); 
+                    if (!initRes.ok) throw new Error("No se pudo iniciar el pago en el backend.");
+                    const { id } = await initRes.json(); // Backend debe devolver un ID de referencia
+                    
+                    // Nota: Asumo que /api/payment-info ya no es necesario o que el backend lo maneja.
+                    // Usaremos el monto que el usuario ingresó (amountWLD).
+                    
+                    // Si el backend es estático y solo proporciona la dirección de destino:
+                    const infoRes = await fetch(VERCEL_API_BASE + "/api/payment-info"); 
+                    if (!infoRes.ok) throw new Error("No se pudo obtener la información de pago.");
+                    const { destinationAddress } = await infoRes.json(); 
+                    
+                    const amountDecimals = tokenToDecimals(amountWLD, Tokens.WLD);
+
+                    const { finalPayload } = await MiniKit.commandsAsync.pay({
+                        reference: id, 
+                        to: destinationAddress, 
+                        description: `Pago de ${amountWLD} WLD para tu Mini App`,
+                        tokens: [{ symbol: Tokens.WLD, token_amount: amountDecimals.toString() }],
+                    });
+
+                    if (finalPayload.status === 'success') {
+                        sendResultToUnity('ReceivePaymentResult', { success: true, hash: finalPayload.hash }); 
+                    } else {
+                        sendResultToUnity('ReceivePaymentResult', { success: false, error: "Pago cancelado o fallido" });
+                    }
+                } catch (err) {
+                    console.error("Error en callHandlePayment:", err);
+                    sendResultToUnity('ReceivePaymentResult', { success: false, error: `Excepción de pago: ${err.message}` });
+                }
+            };
+        </script>
+
         <style>
             @font-face {
                 font-family: 'iconfont';
