@@ -219,7 +219,7 @@ function startGUI () {
     if (closeButton) {
         // 1. Aseguramos que el panel esté cerrado por defecto, y el botón muestre el símbolo de abrir ('*').
         guiDom.classList.add('closed');
-        closeButton.innerHTML = '*';
+        closeButton.innerHTML = 'Open Controls';
 
         // 2. Clonamos y reemplazamos el botón para eliminar el detector de eventos predeterminado de dat.GUI.
         const newCloseButton = closeButton.cloneNode(true);
@@ -247,7 +247,7 @@ function startGUI () {
                         // Usamos setTimeout(0) por seguridad para que se ejecute después de gui.open().
                         setTimeout(() => {
                             guiDom.classList.remove('closed'); // Asegura que la clase se elimina si dat.GUI la deja
-                            newCloseButton.innerHTML = 'x';    // Cambia el símbolo
+                            newCloseButton.innerHTML = 'Close Controls';    // Cambia el símbolo
                             console.log('--- ÉXITO: Panel Abierto y UI Actualizada con gui.open() ---');
                         }, 0); 
                         
@@ -261,7 +261,7 @@ function startGUI () {
                 // Usamos gui.close() para asegurar que el cierre es limpio.
                 gui.close();
                 guiDom.classList.add('closed');
-                newCloseButton.innerHTML = '*'; // Cambiamos el símbolo a 'abrir'
+                newCloseButton.innerHTML = 'Open Controls'; // Cambiamos el símbolo a 'abrir'
                 console.log('Panel cerrado por el usuario.');
             }
         });
