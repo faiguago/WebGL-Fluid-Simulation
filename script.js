@@ -135,6 +135,7 @@ let config = {
     SUNRAYS: true,
     SUNRAYS_RESOLUTION: 196,
     SUNRAYS_WEIGHT: 1.0,
+    BASE_COLOR: [0, 0, 0], // Nuevo: Color del fondo (Negro por defecto)
 }
 
 function pointerPrototype () {
@@ -186,7 +187,7 @@ function getWebGLContext (canvas) {
         supportLinearFiltering = gl.getExtension('OES_texture_half_float_linear');
     }
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(config.BASE_COLOR[0]/255, config.BASE_COLOR[1]/255, config.BASE_COLOR[2]/255, 1);
 
     const halfFloatTexType = isWebGL2 ? gl.HALF_FLOAT : halfFloat.HALF_FLOAT_OES;
     let formatRGBA;
@@ -263,46 +264,80 @@ function randomizeConfig () {
     // Genera valores aleatorios dentro de rangos razonables
     
     // Propiedades de disipación y presión
-    config.DENSITY_DISSIPATION = Math.random() * 2 + 0.1;
-    config.VELOCITY_DISSIPATION = Math.random() * 0.5 + 0.05;
-    config.PRESSURE = Math.random() * 0.9 + 0.1;
+    config.DENSITY_DISSIPATION = Math.random() * 2 + 0.1;    
+    config.VELOCITY_DISSIPATION = Math.random() * 0.5 + 0.05; 
+    config.PRESSURE = Math.random() * 0.9 + 0.1;           
     
     // Propiedad del pincel (Splat Radius)
-    if (config.SPLAT_RADIUS !== undefined) config.SPLAT_RADIUS = Math.random() * 0.3 + 0.1;
+    if (config.SPLAT_RADIUS !== undefined) config.SPLAT_RADIUS = Math.random() * 0.3 + 0.1; 
     
     // Propiedad de curvatura (Curl)
-    if (config.CURL !== undefined) config.CURL = Math.random() * 50;
+    if (config.CURL !== undefined) config.CURL = Math.random() * 50; 
     
-    // Propiedades booleanas (ej. SUNRAYS, BLOOM)
+    // Propiedades booleanas 
     if (config.SUNRAYS !== undefined) config.SUNRAYS = Math.random() > 0.5;
     if (config.BLOOM !== undefined) config.BLOOM = Math.random() > 0.5;
 
-    // Forzar a dat.GUI a actualizar los valores mostrados
-    // Esto es vital para ver los cambios en el panel
-    for (let i in gui.__controllers) {
-        gui.__controllers[i].updateDisplay();
+    // Opcional: Si cambias la resolución, llama a initFramebuffers para aplicar
+    if (config.SIM_RESOLUTION !== undefined && typeof initFramebuffers === 'function') {
+        const resolutions = [32, 64, 128, 256, 512];
+        config.SIM_RESOLUTION = resolutions[Math.floor(Math.random() * resolutions.length)];
+        config.DYE_RESOLUTION = resolutions[Math.floor(Math.random() * resolutions.length)];
+        initFramebuffers(); // Aplica los nuevos tamaños de buffer
     }
-    for (let f in gui.__folders) {
-        for (let i in gui.__folders[f].__controllers) {
-            gui.__folders[f].__controllers[i].updateDisplay();
+    
+    // CRÍTICO: Forzar la actualización de la UI de dat.GUI
+    // Esto itera sobre todos los controladores (sliders, checkboxes) y carpetas.
+    if (typeof gui !== 'undefined') {
+        for (let i in gui.__controllers) {
+            gui.__controllers[i].updateDisplay();
+        }
+        for (let f in gui.__folders) {
+            for (let i in gui.__folders[f].__controllers) {
+                gui.__folders[f].__controllers[i].updateDisplay();
+            }
         }
     }
     
-    console.log("Random Sim: Configuración de simulación aleatorizada.");
+    console.log("Random Sim: Configuración de simulación aleatorizada y UI actualizada.");
 }
-
 
 // Función para alternar el color de fondo (Negro/Blanco)
 function toggleBackgroundColor () {
-    const isBlack = document.body.style.backgroundColor === 'rgb(0, 0, 0)' || document.body.style.backgroundColor === '#000' || document.body.style.backgroundColor === '';
+    // Verificamos si el color actual es oscuro (ej: si el canal Rojo es < 100)
+    const isDark = config.BASE_COLOR[0] < 100;
     
-    if (isBlack) {
-        document.body.style.backgroundColor = '#FFFFFF'; // Fondo Blanco
-        console.log("Fondo cambiado a blanco.");
+    let targetColor;
+    
+    if (isDark) {
+        // Cambiar a Blanco
+        config.BASE_COLOR = [255, 255, 255]; 
+        targetColor = '#FFFFFF';
     } else {
-        document.body.style.backgroundColor = '#000000'; // Fondo Negro
-        console.log("Fondo cambiado a negro.");
+        // Cambiar a Negro
+        config.BASE_COLOR = [0, 0, 0];
+        targetColor = '#000000';
     }
+    
+    // Aplica el color al <body> (siempre es bueno)
+    document.body.style.backgroundColor = targetColor;
+    
+    // CRÍTICO: Forzar una "limpieza" en el canvas para que el nuevo color se muestre.
+    // Esto se logra empujando un valor alto a splatStack.
+    if (typeof splatStack !== 'undefined') {
+        splatStack.push(30); 
+    }
+    
+    // Si la GUI es global, forzamos la actualización de cualquier control que use BASE_COLOR.
+    if (typeof gui !== 'undefined') {
+        for (let f in gui.__folders) {
+            for (let i in gui.__folders[f].__controllers) {
+                gui.__folders[f].__controllers[i].updateDisplay();
+            }
+        }
+    }
+    
+    console.log(`Fondo cambiado a ${targetColor}.`);
 }
 
 function startGUI () {
@@ -992,7 +1027,7 @@ const blit = (() => {
         }
         if (clear)
         {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clearColor(config.BASE_COLOR[0]/255, config.BASE_COLOR[1]/255, config.BASE_COLOR[2]/255, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
         }
         // CHECK_FRAMEBUFFER_STATUS();
