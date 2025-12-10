@@ -56,13 +56,17 @@
                     });
 
                     if (finalPayload.status === 'success') {
-                        // Manejar la autenticacion exitosa con el wallet
+                        // Autenticación exitosa: la promesa se resuelve.
+                        return finalPayload;
                     } else {
-                        // Autenticacion fallida!
+                        // Autenticación fallida/cancelada: Lanzar un error para que la Promesa se rechace.
+                        throw new Error("Autenticación con el monedero fallida o cancelada por el usuario.");
                     }
 
                 } catch (err) {
                     console.error("Error callConnectWallet:", err);
+                    // Re-lanzar el error para que el 'catch' en script.js lo intercepte.
+                    throw err;
                 }
             };
 

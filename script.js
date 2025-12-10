@@ -211,6 +211,50 @@ function startGUI () {
 
     if (isMobile())
         gui.close();
+
+    // Conexion de Billetera
+    const guiDom = gui.domElement;
+    const closeButton = guiDom.querySelector('.close-button');
+
+    if (closeButton) {
+        // 1. Aseguramos que el panel esté cerrado por defecto, y el botón muestre el símbolo de abrir ('*').
+        guiDom.classList.add('closed');
+        closeButton.innerHTML = '*';
+
+        // 2. Clonamos y reemplazamos el botón para eliminar el detector de eventos (listener)
+        // predeterminado de la librería dat.GUI, obteniendo control total.
+        const newCloseButton = closeButton.cloneNode(true);
+        closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+
+        // 3. Añadimos la lógica personalizada al nuevo botón.
+        newCloseButton.addEventListener('click', async (e) => {
+            const isClosed = guiDom.classList.contains('closed');
+
+            if (isClosed) {
+                // El usuario está intentando ABRIR -> Requerimos conexión de monedero.
+                if (window.callConnectWallet) {
+                    console.log('Intento de abrir controles. Llamando a window.callConnectWallet...');
+                    try {
+                        // Esperamos a que la Promesa de la conexión se resuelva (éxito).
+                        await window.callConnectWallet();
+
+                        // CONEXIÓN EXITOSA: Abrimos el panel manualmente.
+                        guiDom.classList.remove('closed');
+                        newCloseButton.innerHTML = 'x'; // Cambiamos el símbolo a 'cerrar'
+
+                    } catch (error) {
+                        // CONEXIÓN FALLIDA (cancelada por el usuario o error):
+                        // El panel permanece cerrado porque el 'catch' se activa.
+                        console.error('Conexión fallida. Panel de controles permanece cerrado.', error);
+                    }
+                }
+            } else {
+                // El usuario está intentando CERRAR -> Permitimos el cierre.
+                guiDom.classList.add('closed');
+                newCloseButton.innerHTML = '*'; // Cambiamos el símbolo a 'abrir'
+            }
+        });
+    }
 }
 
 function isMobile () {
