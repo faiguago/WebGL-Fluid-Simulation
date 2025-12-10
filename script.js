@@ -25,9 +25,11 @@ SOFTWARE.
 'use strict';
 
 // Simulation section
-
 const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
+
+// Global variable for wallet connected
+let walletConnected = false;
 
 let config = {
     SIM_RESOLUTION: 128,
@@ -217,9 +219,9 @@ function startGUI () {
     const closeButton = guiDom.querySelector('.close-button');
 
     if (closeButton) {
-        // 1. Aseguramos que el panel esté cerrado por defecto, y el botón muestre el símbolo de abrir ('*').
+        // 1. Aseguramos que el panel esté cerrado por defecto, y actualizamos el texto inicial.
         guiDom.classList.add('closed');
-        closeButton.innerHTML = 'Open Controls';
+        closeButton.innerHTML = 'Open Controls'; 
 
         // 2. Clonamos y reemplazamos el botón para eliminar el detector de eventos predeterminado de dat.GUI.
         const newCloseButton = closeButton.cloneNode(true);
@@ -231,24 +233,32 @@ function startGUI () {
 
             if (isClosed) {
                 // El usuario está intentando ABRIR.
-                if (window.callConnectWallet) {
+                
+                if (walletConnected) {
+                    // --- CASO 1: YA CONECTADO. ABRIR DIRECTAMENTE ---
+                    gui.open();
+                    
+                    setTimeout(() => {
+                        guiDom.classList.remove('closed'); 
+                        newCloseButton.innerHTML = 'Close Controls';
+                        console.log('--- ÉXITO: Panel Abierto (ya conectado) ---');
+                    }, 0);
+
+                } else if (window.callConnectWallet) {
+                    // --- CASO 2: NO CONECTADO. PEDIR AUTENTICACIÓN ---
                     console.log('Intento de abrir controles. Llamando a window.callConnectWallet...');
                     try {
-                        // Esperamos a que la Promesa se resuelva (éxito).
                         await window.callConnectWallet();
 
-                        // CONEXIÓN EXITOSA: Forzamos la apertura usando el método interno de dat.GUI
-                        // y luego actualizamos el botón manualmente.
-                        
-                        // 1. Abrimos el panel usando el método interno (esto garantiza el estado de visibilidad y estilos)
+                        // CONEXIÓN EXITOSA: Establecer el flag para no volver a pedir.
+                        walletConnected = true; // <--- LA CLAVE PARA ELIMINAR FUTURAS SOLICITUDES
                         gui.open();
                         
-                        // 2. Quitamos la clase 'closed' y actualizamos el símbolo del botón (manualmente, ya que lo interceptamos)
-                        // Usamos setTimeout(0) por seguridad para que se ejecute después de gui.open().
+                        // Forzar actualización de la UI.
                         setTimeout(() => {
-                            guiDom.classList.remove('closed'); // Asegura que la clase se elimina si dat.GUI la deja
-                            newCloseButton.innerHTML = 'Close Controls';    // Cambia el símbolo
-                            console.log('--- ÉXITO: Panel Abierto y UI Actualizada con gui.open() ---');
+                            guiDom.classList.remove('closed'); 
+                            newCloseButton.innerHTML = 'Close Controls';
+                            console.log('--- ÉXITO: Panel Abierto y UI Actualizada ---');
                         }, 0); 
                         
                     } catch (error) {
@@ -258,10 +268,9 @@ function startGUI () {
                 }
             } else {
                 // El usuario está intentando CERRAR -> Permitimos el cierre.
-                // Usamos gui.close() para asegurar que el cierre es limpio.
                 gui.close();
                 guiDom.classList.add('closed');
-                newCloseButton.innerHTML = 'Open Controls'; // Cambiamos el símbolo a 'abrir'
+                newCloseButton.innerHTML = 'Open Controls'; 
                 console.log('Panel cerrado por el usuario.');
             }
         });
