@@ -33,11 +33,8 @@ const paywallOverlay = document.getElementById('paywall-overlay');
 const promoPopup = document.getElementsByClassName('promo')[0]; 
 
 // NUEVA LÓGICA DE CARGA INICIAL: Cargar estado del pago desde localStorage
-if (localStorage.getItem(PAYMENT_STORAGE_KEY) === 'true') {
-    //walletConnected = true;
-    if(!walletConnected)
-        return;
-
+if (localStorage.getItem(PAYMENT_STORAGE_KEY) === 'false') {
+    walletConnected = true;
     console.log('Pago encontrado en el almacenamiento local. Aplicación desbloqueada.');
     
     // Si ya está pagado, aseguramos que la sección 'promo' desaparezca.
