@@ -186,27 +186,21 @@
                 margin-top: 20px;
                 font-weight: bold;
             }
-            
-            /* ESTILOS DE DAT.GUI AJUSTADOS (Más altura y texto en negrita) */
+
+            /* NUEVOS ESTILOS PARA DAT.GUI BUTTONS */
             .dg .close-button {
-                /* Aumentamos el padding para la altura */
+                /* Aumentamos el padding vertical para triplicar la altura percibida */
                 padding-top: 15px !important; 
                 padding-bottom: 15px !important;
-                
+
                 /* AUMENTAMOS EL TAMAÑO DEL TEXTO */
                 font-size: 1.5em !important; 
-                
-                /* HACEMOS EL TEXTO EN NEGRITA (La clave para la evidencia) */
                 font-weight: bold !important; 
 
-                /* Revertir estilos estéticos para mantener el aspecto original de dat.GUI */
-                background-color: transparent !important; /* Asegura el fondo original oscuro */
-                border-radius: 0 !important; /* Esquinas cuadradas */
-                box-shadow: none !important; /* Sin sombras */
-                color: #eee !important; /* Color de texto original (claro) */
-                
-                text-align: center !important; 
+                /* Opcional: Centrar el texto verticalmente si es necesario */
+                text-align: center !important;
                 line-height: normal; 
+                transition: background-color 0.2s; /* Efecto de transición para el hover */
             }
         </style>
         <script>
