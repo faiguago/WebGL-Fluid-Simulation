@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict';
 
 // CLAVE PARA LOCALSTORAGE
-const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test01'; 
+const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test02'; 
 
 // --- VARIABLES GLOBALES Y CARGA INICIAL (INICIO DE script.js) ---
 let walletConnected = false; 
@@ -93,6 +93,12 @@ if (loginPaywallButton) {
                     console.log('Sección promocional oculta permanentemente.');
                 }
                 
+                // --- NUEVA ACCIÓN: LLAMAR A RANDOM SPLATS DESPUÉS DEL PAGO EXITOSO ---
+                if (typeof addRandomSplatRequest === 'function') {
+                    addRandomSplatRequest(); 
+                    console.log('Efecto visual de bienvenida (Random Splats) iniciado.');
+                }
+
                 console.log('Aplicación desbloqueada y estado guardado localmente.');
 
             } catch (error) {
@@ -340,6 +346,14 @@ function toggleBackgroundColor () {
     }
 }
 
+// --- NUEVA FUNCIÓN PARA SOLICITAR SPLATS ALEATORIOS ---
+function addRandomSplatRequest () {
+    // La lógica original: Pone un número aleatorio (entre 5 y 24) en la pila.
+    // El bucle principal de la simulación lee 'splatStack' para ejecutar las salpicaduras.
+    splatStack.push(parseInt(Math.random() * 15) + 10);
+    console.log(`Solicitud de splats aleatorios enviada a la pila.`);
+}
+
 function startGUI () {
     gui = new dat.GUI({ width: 300 });
     gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name('quality').onFinishChange(initFramebuffers);
@@ -353,11 +367,8 @@ function startGUI () {
     gui.add(config, 'COLORFUL').name('colorful');
     gui.add(config, 'PAUSED').name('paused').listen();
 
-    gui.add({ fun: () => {
-        splatStack.push(parseInt(Math.random() * 20) + 5);
-    } }, 'fun').name('Random splats');
-
     // Nuevos botones
+    gui.add({ fun: addRandomSplatRequest }, 'fun').name('Random splats');
     gui.add({ fun: randomizeConfig }, 'fun').name('Random Sim');
     gui.add({ fun: toggleBackgroundColor }, 'fun').name('Toggle Background');
 
