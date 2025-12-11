@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict';
 
 // CLAVE PARA LOCALSTORAGE
-const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test02'; 
+const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test03'; 
 
 // --- VARIABLES GLOBALES Y CARGA INICIAL (INICIO DE script.js) ---
 let walletConnected = false; 
