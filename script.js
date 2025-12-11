@@ -301,6 +301,9 @@ function randomizeConfig () {
     }
     
     console.log("Random Sim: Configuración de simulación aleatorizada y UI actualizada.");
+
+    // Random splats request
+    addRandomSplatRequest();
 }
 
 // Función para alternar el color de fondo (Negro/Blanco)
