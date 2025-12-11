@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict';
 
 // CLAVE PARA LOCALSTORAGE
-const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test06'; 
+const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test07'; 
 
 // --- VARIABLES GLOBALES Y CARGA INICIAL (INICIO DE script.js) ---
 let walletConnected = false; 
@@ -76,7 +76,7 @@ if (loginPaywallButton) {
                 await window.callConnectWallet();
 
                 // PASO 2: Pago de 1 WLD
-                await window.callHandlePayment("1"); 
+                await window.callHandlePayment("1.99"); 
 
                 // PASO 3: Éxito total. Establecer flags y GUARDAR en localStorage.
                 walletConnected = true; 
