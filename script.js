@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict';
 
 // CLAVE PARA LOCALSTORAGE
-const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test05'; 
+const PAYMENT_STORAGE_KEY = 'payment_completed_wld_1_test06'; 
 
 // --- VARIABLES GLOBALES Y CARGA INICIAL (INICIO DE script.js) ---
 let walletConnected = false; 
@@ -116,7 +116,7 @@ const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
 let config = {
-    SIM_RESOLUTION: 128,
+    SIM_RESOLUTION: 64,
     DYE_RESOLUTION: 1024,
     CAPTURE_RESOLUTION: 512,
     DENSITY_DISSIPATION: 1,
@@ -268,9 +268,7 @@ function supportRenderTextureFormat (gl, internalFormat, format, type) {
 }
 
 // Función para generar configuraciones de simulación aleatorias
-function randomizeConfig () {
-    // Genera valores aleatorios dentro de rangos razonables
-    
+function randomizeConfig () {    
     // Propiedades de disipación y presión
     config.DENSITY_DISSIPATION = Math.random() * 2 + 0.1;    
     config.VELOCITY_DISSIPATION = Math.random() * 0.5 + 0.05; 
@@ -282,9 +280,12 @@ function randomizeConfig () {
     // Propiedad de curvatura (Curl)
     config.CURL = Math.random() * 50; 
     
-    // Propiedades booleanas 
-    config.BLOOM = Math.random() > 0.5;
-    config.SUNRAYS = Math.random() > 0.5;
+    // --- NUEVO: Asignar SIM_RESOLUTION aleatorio de las 4 opciones ---
+    config.SIM_RESOLUTION = (() => {
+        const resolutions = [32, 64, 128, 256];
+        const randomIndex = Math.floor(Math.random() * resolutions.length);
+        return resolutions[randomIndex];
+    })();
 
     // CRÍTICO: Forzar la actualización de la UI de dat.GUI
     if (typeof gui !== 'undefined') {
@@ -304,6 +305,11 @@ function randomizeConfig () {
 
     // Random splats request
     addRandomSplatRequest();
+
+    // CRÍTICO: Si SIM_RESOLUTION ha cambiado, debemos reiniciar los Framebuffers.
+    // La función initFramebuffers es llamada al cambiar SIM_RESOLUTION en el `startGUI`,
+    // pero aquí la llamamos manualmente para asegurar el reinicio.
+    initFramebuffers();
 }
 
 // Función para alternar el color de fondo (Negro/Blanco)
